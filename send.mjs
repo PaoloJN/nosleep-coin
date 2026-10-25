@@ -1,16 +1,13 @@
-import fs from "node:fs";
-import { Keypair, Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
+
+import { PublicKey } from "@solana/web3.js";
+import { wallet, connection, readMint, explorer } from "./config.mjs";
 import {
   getOrCreateAssociatedTokenAccount,
   transfer,
   getAccount,
 } from "@solana/spl-token";
 
-const wallet = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(fs.readFileSync("wallet.json", "utf8")))
-);
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-const mint = new PublicKey(JSON.parse(fs.readFileSync("mint.json", "utf8")).mint);
+const mint = new PublicKey(readMint());
 
 // Usage: node send.mjs <recipient> <amount>
 const [, , to, amountArg] = process.argv;
@@ -40,7 +37,7 @@ const sig = await transfer(
   wallet,            // owner of source, must sign
   amount
 );
-console.log("tx:", `https://explorer.solana.com/tx/${sig}?cluster=devnet`);
+console.log("tx:", explorer("tx", sig));
 
 // 4. Read both balances back.
 const a = await getAccount(connection, from.address);

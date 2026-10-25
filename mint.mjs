@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { Keypair, Connection, clusterApiUrl } from "@solana/web3.js";
+import { wallet, connection, MINT_FILE, explorer } from "./config.mjs";
 import {
   createMint,
   getOrCreateAssociatedTokenAccount,
@@ -7,11 +7,7 @@ import {
   getMint,
 } from "@solana/spl-token";
 
-// Same wallet as setup.mjs. It will pay fees and be the token's authority.
-const wallet = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(fs.readFileSync("wallet.json", "utf8")))
-);
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+// wallet + connection come from config.mjs (devnet by default, CLUSTER=mainnet for real).
 
 const DECIMALS = 9; // like SOL: 1 token = 1e9 base units
 const SUPPLY = 1_000_000; // how many whole tokens to print
@@ -60,7 +56,7 @@ await mintTo(
 const info = await getMint(connection, mint);
 console.log("supply:", Number(info.supply) / 10 ** DECIMALS);
 console.log("decimals:", info.decimals);
-console.log("explorer:", `https://explorer.solana.com/address/${mint.toBase58()}?cluster=devnet`);
+console.log("explorer:", explorer("address", mint.toBase58()));
 
 // Save the mint address for the next script (metadata).
-fs.writeFileSync("mint.json", JSON.stringify({ mint: mint.toBase58() }));
+fs.writeFileSync(MINT_FILE, JSON.stringify({ mint: mint.toBase58() }));

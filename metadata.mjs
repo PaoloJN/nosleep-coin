@@ -9,13 +9,14 @@ import {
 
 // Metaplex ships its own client ("umi") instead of web3.js. Same idea:
 // an RPC connection + an identity (keypair) that signs and pays.
-const umi = createUmi("https://api.devnet.solana.com").use(mplTokenMetadata());
+import { RPC_URL, secretKey, readMint, explorer } from "./config.mjs";
 
-// Load the same wallet.json, but as a umi keypair this time.
-const secret = Uint8Array.from(JSON.parse(fs.readFileSync("wallet.json", "utf8")));
-umi.use(keypairIdentity(umi.eddsa.createKeypairFromSecretKey(secret)));
+const umi = createUmi(RPC_URL).use(mplTokenMetadata());
 
-const mint = publicKey(JSON.parse(fs.readFileSync("mint.json", "utf8")).mint);
+// Same secret key bytes, wrapped as a umi keypair this time.
+umi.use(keypairIdentity(umi.eddsa.createKeypairFromSecretKey(secretKey)));
+
+const mint = publicKey(readMint());
 
 // The metadata lives in a *separate* account whose address is derived from
 // the mint: hash("metadata", programId, mint). That's a PDA (Program Derived
@@ -26,7 +27,7 @@ console.log("metadata account:", metadataPda[0]);
 
 const NAME = "NoSleep";
 const SYMBOL = "NOSLEEP";
-const URI = ""; // will point to a JSON { name, symbol, description, image } later
+const URI = "https://raw.githubusercontent.com/PaoloJN/nosleep-coin/main/metadata.json";
 
 // Only the mintAuthority can create metadata for a mint, which is why this
 // has to be your wallet. updateAuthority = who may edit it later.
@@ -48,4 +49,4 @@ await createMetadataAccountV3(umi, {
   collectionDetails: none(),
 }).sendAndConfirm(umi);
 
-console.log("done:", `https://explorer.solana.com/address/${mint}?cluster=devnet`);
+console.log("done:", explorer("address", mint));

@@ -1,12 +1,9 @@
-import fs from "node:fs";
-import { Keypair, Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
+
+import { PublicKey } from "@solana/web3.js";
+import { wallet, connection, readMint } from "./config.mjs";
 import { setAuthority, AuthorityType, getMint } from "@solana/spl-token";
 
-const wallet = Keypair.fromSecretKey(
-  Uint8Array.from(JSON.parse(fs.readFileSync("wallet.json", "utf8")))
-);
-const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-const mint = new PublicKey(JSON.parse(fs.readFileSync("mint.json", "utf8")).mint);
+const mint = new PublicKey(readMint());
 
 const before = await getMint(connection, mint);
 console.log("mint authority before:", before.mintAuthority?.toBase58() ?? "none");
